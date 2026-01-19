@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Shire Wellness Almanac</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <p class="overline">The Shire Wellness Almanac</p>
+        <h1>Tell us how you are feeling today</h1>
+        <p class="subtitle">
+          A gentle hobbit-inspired journal that paints your year in cozy blocks.
+        </p>
+      </header>
+
+      <section class="check-in" aria-labelledby="check-in-title">
+        <div class="card">
+          <h2 id="check-in-title">Today's Shire Check-In</h2>
+          <p class="helper">
+            Slide the leaf to match your health. 0 is spring-strong, 4 is "need
+            some athelas tea".
+          </p>
+          <div class="input-row">
+            <label for="feeling-range">Sickness level</label>
+            <input
+              id="feeling-range"
+              type="range"
+              min="0"
+              max="4"
+              step="1"
+              value="0"
+            />
+            <span id="feeling-label" class="feeling-label">Bright &amp; Breezy</span>
+          </div>
+          <button id="save-button" class="primary">Save today's feeling</button>
+          <p id="save-message" class="save-message" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="legend card">
+          <h3>Legend</h3>
+          <ul>
+            <li><span class="swatch level-0"></span>Bright &amp; Breezy</li>
+            <li><span class="swatch level-1"></span>Little Under the Weather</li>
+            <li><span class="swatch level-2"></span>Resting by the Fire</li>
+            <li><span class="swatch level-3"></span>Shire-Healer Visit</li>
+            <li><span class="swatch level-4"></span>Athelas Needed</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="calendar" aria-labelledby="calendar-title">
+        <div class="calendar-header">
+          <h2 id="calendar-title">Your Year of Wellbeing</h2>
+          <p>Each block shows your recorded sickness level for that day.</p>
+        </div>
+        <div id="calendar-grid" class="calendar-grid" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
