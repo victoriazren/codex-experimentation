@@ -3,60 +3,139 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>The Shire Wellness Almanac</title>
+    <title>Stanford Event Organizer Assistant</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main class="page">
       <header class="hero">
-        <p class="overline">The Shire Wellness Almanac</p>
-        <h1>Tell us how you are feeling today</h1>
+        <p class="overline">Stanford Event Organizer Assistant</p>
+        <h1>Plan your Stanford event with clear, official next steps</h1>
         <p class="subtitle">
-          A gentle hobbit-inspired journal that paints your year in cozy blocks.
+          Share the essentials below and generate a checklist that routes you to the
+          right Stanford offices and forms. This tool only links to official Stanford
+          resources and flags when approvals are required.
         </p>
       </header>
 
-      <section class="check-in" aria-labelledby="check-in-title">
+      <section class="intake" aria-labelledby="intake-title">
         <div class="card">
-          <h2 id="check-in-title">Today's Shire Check-In</h2>
+          <h2 id="intake-title">Event Intake</h2>
           <p class="helper">
-            Slide the leaf to match your health. 0 is spring-strong, 4 is "need
-            some athelas tea".
+            Provide only what you know. Missing information will be listed as follow-up
+            questions so you can gather it later.
           </p>
-          <div class="input-row">
-            <label for="feeling-range">Sickness level</label>
-            <input
-              id="feeling-range"
-              type="range"
-              min="0"
-              max="4"
-              step="1"
-              value="0"
-            />
-            <span id="feeling-label" class="feeling-label">Bright &amp; Breezy</span>
-          </div>
-          <button id="save-button" class="primary">Save today's feeling</button>
-          <p id="save-message" class="save-message" role="status" aria-live="polite"></p>
-        </div>
-
-        <div class="legend card">
-          <h3>Legend</h3>
-          <ul>
-            <li><span class="swatch level-0"></span>Bright &amp; Breezy</li>
-            <li><span class="swatch level-1"></span>Little Under the Weather</li>
-            <li><span class="swatch level-2"></span>Resting by the Fire</li>
-            <li><span class="swatch level-3"></span>Shire-Healer Visit</li>
-            <li><span class="swatch level-4"></span>Athelas Needed</li>
-          </ul>
+          <form id="event-form" class="form-grid">
+            <label class="field">
+              <span>Event type &amp; purpose</span>
+              <input
+                type="text"
+                name="eventType"
+                placeholder="Speaker, social, performance, tabling, etc."
+              />
+            </label>
+            <label class="field">
+              <span>Date &amp; time</span>
+              <input type="text" name="dateTime" placeholder="e.g., Oct 18, 4–6 PM" />
+            </label>
+            <label class="field">
+              <span>Location (desired or confirmed)</span>
+              <input type="text" name="location" placeholder="Building, outdoor area" />
+            </label>
+            <label class="field">
+              <span>Expected attendance</span>
+              <input type="text" name="attendance" placeholder="e.g., 40–60" />
+            </label>
+            <label class="field">
+              <span>Hosting group</span>
+              <input
+                type="text"
+                name="host"
+                placeholder="Recognized student org, department, dorm"
+              />
+            </label>
+            <label class="field">
+              <span>Food or drink</span>
+              <select name="food">
+                <option value="">Select one</option>
+                <option value="none">None</option>
+                <option value="snacks">Snacks / light refreshments</option>
+                <option value="catering">Catered meal</option>
+                <option value="alcohol">Alcohol service</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Audio / visual needs</span>
+              <input
+                type="text"
+                name="av"
+                placeholder="Mic, speakers, projector, livestream"
+              />
+            </label>
+            <label class="field">
+              <span>Budget range &amp; funding source</span>
+              <input type="text" name="budget" placeholder="$0–$500, grant, etc." />
+            </label>
+            <label class="field field-wide">
+              <span>Accessibility needs</span>
+              <input
+                type="text"
+                name="accessibility"
+                placeholder="ASL, captions, wheelchair access"
+              />
+            </label>
+            <fieldset class="field field-wide">
+              <legend>Risk flags</legend>
+              <div class="checkbox-grid">
+                <label><input type="checkbox" name="risk" value="alcohol" /> Alcohol</label>
+                <label><input type="checkbox" name="risk" value="minors" /> Minors</label>
+                <label><input type="checkbox" name="risk" value="amplified" /> Amplified sound</label>
+                <label><input type="checkbox" name="risk" value="outdoors" /> Outdoors</label>
+                <label><input type="checkbox" name="risk" value="latenight" /> Late-night</label>
+                <label><input type="checkbox" name="risk" value="ticketing" /> Ticketing / cash</label>
+                <label><input type="checkbox" name="risk" value="vendors" /> External vendors / contracts</label>
+                <label><input type="checkbox" name="risk" value="cooking" /> Cooking / flames / special equipment</label>
+              </div>
+            </fieldset>
+            <div class="form-actions">
+              <button type="submit" class="primary">Generate planning checklist</button>
+              <button type="reset" class="ghost">Clear</button>
+            </div>
+          </form>
         </div>
       </section>
 
-      <section class="calendar" aria-labelledby="calendar-title">
-        <div class="calendar-header">
-          <h2 id="calendar-title">Your Year of Wellbeing</h2>
-          <p>Each block shows your recorded sickness level for that day.</p>
+      <section class="output" aria-live="polite">
+        <div class="card">
+          <h2>A) Event Summary</h2>
+          <div id="summary" class="output-block muted">
+            Fill out the intake form to generate your event summary.
+          </div>
         </div>
-        <div id="calendar-grid" class="calendar-grid" aria-live="polite"></div>
+        <div class="card">
+          <h2>B) What You Need to Do Next (Ordered Checklist)</h2>
+          <div id="checklist" class="output-block muted">
+            Your checklist will appear here after you submit the form.
+          </div>
+        </div>
+        <div class="card">
+          <h2>C) Options (If Applicable)</h2>
+          <div id="options" class="output-block muted">
+            Options will appear when they apply to your event details.
+          </div>
+        </div>
+        <div class="card">
+          <h2>D) What to Confirm or Watch For</h2>
+          <div id="watch" class="output-block muted">
+            We will flag policy dependencies and deadline risks based on your inputs.
+          </div>
+        </div>
+        <div class="card">
+          <h2>E) Questions (Only If Needed)</h2>
+          <div id="questions" class="output-block muted">
+            Missing information will be listed here as follow-up questions.
+          </div>
+        </div>
       </section>
     </main>
 
