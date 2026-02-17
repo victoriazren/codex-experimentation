@@ -3,142 +3,819 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Stanford Event Organizer Assistant</title>
-    <link rel="stylesheet" href="styles.css" />
+    <title>Digital Advent Calendar</title>
+    <style>
+      :root {
+        --pink: #ff1493;
+        --pink-deep: #d9007a;
+        --blue: #09b2ff;
+        --lavender: #9b4dff;
+        --lime: #8dff00;
+        --orange: #ff8a00;
+        --bg1: #ff4fc3;
+        --bg2: #00c8ff;
+        --bg3: #ffe600;
+        --ink: #2b0d52;
+        --white: #ffffff;
+        --shadow: 0 12px 24px rgba(53, 35, 80, 0.2);
+        --radius-lg: 24px;
+        --radius-md: 16px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        font-family: "Comic Sans MS", "Chalkboard SE", "Marker Felt", "Trebuchet MS", cursive;
+        color: var(--ink);
+      }
+
+      body {
+        background:
+          radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.5), transparent 35%),
+          radial-gradient(circle at 80% 10%, rgba(141, 255, 0, 0.5), transparent 30%),
+          linear-gradient(145deg, var(--bg1), var(--bg2) 45%, var(--bg3));
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.35) 0.7px, transparent 0.7px);
+        background-size: 3px 3px;
+        pointer-events: none;
+        opacity: 0.35;
+      }
+
+      .sparkles {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .sparkle {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        transform: rotate(45deg);
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 2px;
+        animation: twinkle 2.8s ease-in-out infinite;
+      }
+
+      .sparkle::before,
+      .sparkle::after {
+        content: "";
+        position: absolute;
+        background: rgba(255, 255, 255, 0.8);
+      }
+
+      .sparkle::before {
+        width: 2px;
+        height: 16px;
+        top: -3px;
+        left: 4px;
+      }
+
+      .sparkle::after {
+        width: 16px;
+        height: 2px;
+        top: 4px;
+        left: -3px;
+      }
+
+      @keyframes twinkle {
+        0%,
+        100% {
+          opacity: 0.2;
+          transform: scale(0.8) rotate(45deg);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.15) rotate(45deg);
+        }
+      }
+
+      .app-shell {
+        position: relative;
+        z-index: 1;
+        width: min(1100px, 94vw);
+        margin: 24px auto 40px;
+      }
+
+      .panel {
+        background: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.82));
+        border: 2px solid rgba(255, 255, 255, 0.7);
+        box-shadow: var(--shadow);
+        border-radius: 30px;
+        padding: clamp(20px, 3vw, 36px);
+        backdrop-filter: blur(6px);
+      }
+
+      .screen {
+        display: none;
+      }
+
+      .screen.active {
+        display: block;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      .title {
+        text-align: center;
+        font-size: clamp(1.8rem, 4vw, 3rem);
+        margin-bottom: 8px;
+        color: #c90081;
+        text-shadow: 0 3px 0 rgba(255, 255, 255, 0.9);
+      }
+
+      .subtitle {
+        text-align: center;
+        margin-bottom: 26px;
+        font-size: 0.98rem;
+      }
+
+      .login-wrap {
+        max-width: 440px;
+        margin: 8vh auto;
+      }
+
+      .login-card {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .login-card::after {
+        content: "";
+        position: absolute;
+        inset: -30% 0 auto;
+        height: 60%;
+        background: linear-gradient(
+          120deg,
+          transparent,
+          rgba(255, 255, 255, 0.68),
+          transparent
+        );
+        transform: translateX(-100%);
+        animation: shimmer 3.4s infinite;
+      }
+
+      @keyframes shimmer {
+        100% {
+          transform: translateX(120%);
+        }
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+
+      label {
+        font-weight: 700;
+        font-size: 0.95rem;
+      }
+
+      input {
+        width: 100%;
+        border: 2px solid #ff61c5;
+        border-radius: 14px;
+        padding: 12px 14px;
+        font-size: 1rem;
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.96);
+      }
+
+      input:focus-visible,
+      .door:focus-visible,
+      .btn:focus-visible,
+      .icon-btn:focus-visible {
+        outline: 3px solid var(--blue);
+        outline-offset: 2px;
+      }
+
+      .btn {
+        border: 0;
+        border-radius: 999px;
+        padding: 12px 20px;
+        font-size: 1rem;
+        font-weight: 800;
+        cursor: pointer;
+        color: #3b234f;
+        background: linear-gradient(180deg, #ffffff, #ffb7ec 45%, #ff69d6);
+        box-shadow: 0 4px 0 #ff2fb0, 0 7px 12px rgba(255, 47, 176, 0.45);
+        transition: transform 120ms ease, box-shadow 120ms ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px) scale(1.01);
+      }
+
+      .btn:active {
+        transform: translateY(3px);
+        box-shadow: 0 2px 0 #ff2fb0, 0 4px 8px rgba(255, 47, 176, 0.35);
+      }
+
+      .tiny-note {
+        margin-top: 10px;
+        font-size: 0.83rem;
+        opacity: 0.85;
+      }
+
+      .calendar-head {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+
+      .calendar-grid {
+        position: relative;
+        min-height: 520px;
+        border-radius: 28px;
+        border: 3px dashed rgba(255, 255, 255, 0.8);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.15));
+        padding: 10px;
+      }
+
+      .door {
+        min-height: 92px;
+        border: 3px solid #ffffff;
+        border-radius: var(--shape, 30px);
+        background: linear-gradient(165deg, var(--door1, #ff6fd8), var(--door2, #1fc8ff));
+        box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.65), 0 8px 14px rgba(87, 59, 99, 0.24);
+        color: var(--ink);
+        font: inherit;
+        font-weight: 800;
+        font-size: 1.2rem;
+        position: relative;
+        cursor: pointer;
+        transition: transform 140ms ease, filter 140ms ease;
+        overflow: hidden;
+        position: absolute;
+        left: var(--x);
+        top: var(--y);
+        width: var(--w);
+        height: var(--h);
+      }
+
+      .door::before {
+        content: "";
+        position: absolute;
+        width: 120%;
+        height: 40%;
+        left: -10%;
+        top: 8px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+      }
+
+      .door:hover {
+        transform: translateY(-2px) scale(1.02);
+      }
+
+      .door:active {
+        transform: translateY(2px) scale(0.99);
+      }
+
+      .door .num {
+        position: relative;
+        z-index: 1;
+        font-size: clamp(1rem, 2.2vw, 1.5rem);
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+      }
+
+      .door::after {
+        content: "📫";
+        position: absolute;
+        left: 10px;
+        bottom: 8px;
+        font-size: 1rem;
+        filter: drop-shadow(0 1px 0 #fff);
+      }
+
+      .door.opened {
+        filter: saturate(0.6) brightness(0.92);
+      }
+
+      .door.opened .sticker {
+        display: grid;
+      }
+
+      .sticker {
+        display: none;
+        place-items: center;
+        position: absolute;
+        right: 8px;
+        bottom: 8px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--lime);
+        border: 2px solid #7eae11;
+        font-size: 0.95rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        place-items: center;
+        padding: 16px;
+        z-index: 20;
+      }
+
+      .modal.open {
+        display: grid;
+      }
+
+      .modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(32, 21, 42, 0.52);
+      }
+
+      .modal-content {
+        position: relative;
+        width: min(680px, 100%);
+        max-height: 88vh;
+        overflow: auto;
+        border-radius: 28px;
+        padding: 18px;
+        background: linear-gradient(170deg, rgba(255, 255, 255, 0.98), rgba(247, 233, 255, 0.95));
+        border: 2px solid #ffe7ff;
+        box-shadow: var(--shadow);
+      }
+
+      .modal-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .icon-btn {
+        border: 0;
+        border-radius: 999px;
+        width: 38px;
+        height: 38px;
+        font-size: 1.3rem;
+        cursor: pointer;
+        background: linear-gradient(#fff, #ffd6fa);
+        color: #5f2d7d;
+      }
+
+      .surprise-frame {
+        min-height: 330px;
+        border-radius: 22px;
+        padding: 18px;
+        background: linear-gradient(180deg, #ffffff, #f1f8ff);
+        border: 2px dashed #f2bee8;
+      }
+
+      .surprise-frame h3 {
+        margin-top: 0;
+        text-align: center;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+
+      .svg-wrap {
+        display: grid;
+        place-items: center;
+      }
+
+      .final-message {
+        text-align: center;
+        font-size: clamp(1.7rem, 4vw, 2.7rem);
+        color: var(--pink-deep);
+        font-weight: 900;
+        text-shadow: 0 3px 0 #fff;
+      }
+
+      @media (max-width: 620px) {
+        .app-shell {
+          width: min(95vw, 700px);
+        }
+
+        .calendar-grid {
+          min-height: auto;
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+          padding: 12px;
+        }
+
+        .door {
+          position: relative;
+          left: auto;
+          top: auto;
+          width: 100%;
+          height: 98px;
+        }
+      }
+    </style>
   </head>
   <body>
-    <main class="page">
-      <header class="hero">
-        <p class="overline">Stanford Event Organizer Assistant</p>
-        <h1>Plan your Stanford event with clear, official next steps</h1>
-        <p class="subtitle">
-          Share the essentials below and generate a checklist that routes you to the
-          right Stanford offices and forms. This tool only links to official Stanford
-          resources and flags when approvals are required.
-        </p>
-      </header>
+    <div class="sparkles" aria-hidden="true">
+      <span class="sparkle" style="left: 8%; top: 14%; animation-delay: 0s"></span>
+      <span class="sparkle" style="left: 22%; top: 70%; animation-delay: 0.8s"></span>
+      <span class="sparkle" style="left: 48%; top: 20%; animation-delay: 1.1s"></span>
+      <span class="sparkle" style="left: 66%; top: 58%; animation-delay: 1.9s"></span>
+      <span class="sparkle" style="left: 83%; top: 34%; animation-delay: 0.35s"></span>
+      <span class="sparkle" style="left: 92%; top: 77%; animation-delay: 1.5s"></span>
+    </div>
 
-      <section class="intake" aria-labelledby="intake-title">
-        <div class="card">
-          <h2 id="intake-title">Event Intake</h2>
-          <p class="helper">
-            Provide only what you know. Missing information will be listed as follow-up
-            questions so you can gather it later.
-          </p>
-          <form id="event-form" class="form-grid">
-            <label class="field">
-              <span>Event type &amp; purpose</span>
-              <input
-                type="text"
-                name="eventType"
-                placeholder="Speaker, social, performance, tabling, etc."
-              />
-            </label>
-            <label class="field">
-              <span>Date &amp; time</span>
-              <input type="text" name="dateTime" placeholder="e.g., Oct 18, 4–6 PM" />
-            </label>
-            <label class="field">
-              <span>Location (desired or confirmed)</span>
-              <input type="text" name="location" placeholder="Building, outdoor area" />
-            </label>
-            <label class="field">
-              <span>Expected attendance</span>
-              <input type="text" name="attendance" placeholder="e.g., 40–60" />
-            </label>
-            <label class="field">
-              <span>Hosting group</span>
-              <input
-                type="text"
-                name="host"
-                placeholder="Recognized student org, department, dorm"
-              />
-            </label>
-            <label class="field">
-              <span>Food or drink</span>
-              <select name="food">
-                <option value="">Select one</option>
-                <option value="none">None</option>
-                <option value="snacks">Snacks / light refreshments</option>
-                <option value="catering">Catered meal</option>
-                <option value="alcohol">Alcohol service</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>Audio / visual needs</span>
-              <input
-                type="text"
-                name="av"
-                placeholder="Mic, speakers, projector, livestream"
-              />
-            </label>
-            <label class="field">
-              <span>Budget range &amp; funding source</span>
-              <input type="text" name="budget" placeholder="$0–$500, grant, etc." />
-            </label>
-            <label class="field field-wide">
-              <span>Accessibility needs</span>
-              <input
-                type="text"
-                name="accessibility"
-                placeholder="ASL, captions, wheelchair access"
-              />
-            </label>
-            <fieldset class="field field-wide">
-              <legend>Risk flags</legend>
-              <div class="checkbox-grid">
-                <label><input type="checkbox" name="risk" value="alcohol" /> Alcohol</label>
-                <label><input type="checkbox" name="risk" value="minors" /> Minors</label>
-                <label><input type="checkbox" name="risk" value="amplified" /> Amplified sound</label>
-                <label><input type="checkbox" name="risk" value="outdoors" /> Outdoors</label>
-                <label><input type="checkbox" name="risk" value="latenight" /> Late-night</label>
-                <label><input type="checkbox" name="risk" value="ticketing" /> Ticketing / cash</label>
-                <label><input type="checkbox" name="risk" value="vendors" /> External vendors / contracts</label>
-                <label><input type="checkbox" name="risk" value="cooking" /> Cooking / flames / special equipment</label>
-              </div>
-            </fieldset>
-            <div class="form-actions">
-              <button type="submit" class="primary">Generate planning checklist</button>
-              <button type="reset" class="ghost">Clear</button>
+    <main class="app-shell">
+      <section id="login-screen" class="screen active login-wrap" aria-labelledby="login-title">
+        <div class="panel login-card">
+          <h1 id="login-title" class="title">Digital Advent Calendar</h1>
+          <p class="subtitle">Demo login only ✨</p>
+          <form id="login-form" novalidate>
+            <div class="field">
+              <label for="username">Username</label>
+              <input id="username" name="username" autocomplete="username" required />
             </div>
+            <div class="field">
+              <label for="password">Password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                required
+              />
+            </div>
+            <button class="btn" type="submit" aria-label="Login with demo credentials">Log in</button>
+            <p id="login-feedback" role="status" class="tiny-note" aria-live="polite"></p>
+            <p class="tiny-note">Hint: DEMO_USER / DEMO_PASS</p>
           </form>
         </div>
       </section>
 
-      <section class="output" aria-live="polite">
-        <div class="card">
-          <h2>A) Event Summary</h2>
-          <div id="summary" class="output-block muted">
-            Fill out the intake form to generate your event summary.
+      <section id="calendar-screen" class="screen" aria-labelledby="calendar-title">
+        <div class="panel">
+          <div class="calendar-head">
+            <div>
+              <h2 id="calendar-title" class="title" style="text-align: left; margin-bottom: 6px">
+                Bobby's Treat For You
+              </h2>
+              <p>Open any inbox door for a surprise 💌</p>
+            </div>
+            <button class="btn" id="reset-btn" aria-label="Reset calendar and log out">Reset</button>
           </div>
-        </div>
-        <div class="card">
-          <h2>B) What You Need to Do Next (Ordered Checklist)</h2>
-          <div id="checklist" class="output-block muted">
-            Your checklist will appear here after you submit the form.
-          </div>
-        </div>
-        <div class="card">
-          <h2>C) Options (If Applicable)</h2>
-          <div id="options" class="output-block muted">
-            Options will appear when they apply to your event details.
-          </div>
-        </div>
-        <div class="card">
-          <h2>D) What to Confirm or Watch For</h2>
-          <div id="watch" class="output-block muted">
-            We will flag policy dependencies and deadline risks based on your inputs.
-          </div>
-        </div>
-        <div class="card">
-          <h2>E) Questions (Only If Needed)</h2>
-          <div id="questions" class="output-block muted">
-            Missing information will be listed here as follow-up questions.
-          </div>
+          <div class="calendar-grid" id="calendar-grid" aria-label="Advent calendar doors"></div>
         </div>
       </section>
     </main>
 
-    <script src="script.js"></script>
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-backdrop" id="modal-backdrop"></div>
+      <div class="modal-content" id="modal-content">
+        <div class="modal-top">
+          <h3 id="modal-title">Door Surprise</h3>
+          <button class="icon-btn" id="modal-close" aria-label="Close surprise">×</button>
+        </div>
+        <div id="surprise-content" class="surprise-frame"></div>
+      </div>
+    </div>
+
+    <script>
+      const LOGIN_KEY = "loggedIn";
+      const OPENED_KEY = "openedDoors";
+
+      // Demo-only credentials for a harmless local gate. Change values if needed.
+      const DEMO_USERNAME = "DEMO_USER";
+      const DEMO_PASSWORD = "DEMO_PASS";
+
+      const loginScreen = document.getElementById("login-screen");
+      const calendarScreen = document.getElementById("calendar-screen");
+      const loginForm = document.getElementById("login-form");
+      const feedback = document.getElementById("login-feedback");
+      const calendarGrid = document.getElementById("calendar-grid");
+      const resetBtn = document.getElementById("reset-btn");
+      const modal = document.getElementById("modal");
+      const modalContent = document.getElementById("modal-content");
+      const modalBackdrop = document.getElementById("modal-backdrop");
+      const modalClose = document.getElementById("modal-close");
+      const surpriseContent = document.getElementById("surprise-content");
+      const modalTitle = document.getElementById("modal-title");
+
+      let currentDoor = null;
+      let lastFocused = null;
+
+      const surprises = {
+        1: () => `
+          <h3>Door 1</h3>
+          <div class="svg-wrap">
+            <svg width="320" height="220" viewBox="0 0 320 220" aria-label="Ancient scroll illustration" role="img">
+              <defs>
+                <linearGradient id="scrollBody" x1="0" x2="1">
+                  <stop offset="0" stop-color="#f2e2bf" />
+                  <stop offset="1" stop-color="#ddc49c" />
+                </linearGradient>
+              </defs>
+              <rect x="56" y="36" width="208" height="148" rx="18" fill="url(#scrollBody)" stroke="#a8794b" stroke-width="4"/>
+              <ellipse cx="56" cy="110" rx="22" ry="66" fill="#c08f60"/>
+              <ellipse cx="264" cy="110" rx="22" ry="66" fill="#c08f60"/>
+              <path d="M56 46 Q70 60 56 74" fill="none" stroke="#8b5c37" stroke-width="4"/>
+              <path d="M264 46 Q250 60 264 74" fill="none" stroke="#8b5c37" stroke-width="4"/>
+              <text x="160" y="115" text-anchor="middle" font-size="26" fill="#744620" font-family="Georgia, serif">i love you BAEBY</text>
+              <animateTransform attributeName="transform" attributeType="XML" type="translate" values="0 0;0 -2;0 0" dur="2s" repeatCount="indefinite"/>
+            </svg>
+          </div>`,
+        2: () => `
+          <h3>Door 2</h3>
+          <div class="svg-wrap"><svg width="330" height="230" viewBox="0 0 330 230" role="img" aria-label="Cute cat holding sign">
+            <rect x="82" y="130" width="166" height="70" rx="18" fill="#ffe6f4" stroke="#d584b6" stroke-width="3"/>
+            <circle cx="165" cy="86" r="52" fill="#ffc999" stroke="#a86c3f" stroke-width="4"/>
+            <polygon points="125,52 145,24 154,64" fill="#ffc999" stroke="#a86c3f" stroke-width="4"/>
+            <polygon points="205,52 185,24 176,64" fill="#ffc999" stroke="#a86c3f" stroke-width="4"/>
+            <circle cx="147" cy="86" r="6" fill="#4c2f2a"/>
+            <circle cx="183" cy="86" r="6" fill="#4c2f2a"/>
+            <path d="M154 104 Q165 114 176 104" stroke="#4c2f2a" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <rect x="105" y="142" width="120" height="45" rx="8" fill="#fff" stroke="#8ea7ff" stroke-width="3"/>
+            <text x="165" y="171" text-anchor="middle" fill="#334d90" font-weight="700" font-size="19">Adopt a cat</text>
+          </svg></div>`,
+        3: () => `
+          <h3>Door 3</h3>
+          <div class="svg-wrap"><svg width="320" height="240" viewBox="0 0 320 240" role="img" aria-label="Book cover with stylized people">
+            <rect x="46" y="18" width="228" height="202" rx="12" fill="#3b2f66" stroke="#f4d2ff" stroke-width="4"/>
+            <rect x="60" y="34" width="200" height="170" rx="8" fill="#593d8e"/>
+            <text x="160" y="56" text-anchor="middle" fill="#fff" font-size="22" font-weight="700">Origins of LOVE</text>
+            <circle cx="124" cy="112" r="20" fill="#f0c7ad"/>
+            <path d="M98 168 Q124 135 150 168" fill="#ff8ec3"/>
+            <path d="M108 100 Q124 72 140 100" fill="#20183f"/>
+            <circle cx="200" cy="112" r="20" fill="#d8a67f"/>
+            <path d="M174 168 Q200 135 226 168" fill="#7fc9ff"/>
+            <path d="M184 100 Q200 74 216 100" fill="#1f1c36"/>
+            <text x="160" y="192" text-anchor="middle" fill="#ffe6ff" font-size="13">A gentle cross-cultural love tale</text>
+          </svg></div>`,
+        4: () => `<h3>Door 4</h3><div class="svg-wrap"><svg width="320" height="220" viewBox="0 0 320 220" role="img" aria-label="Joke coupon">
+            <rect x="40" y="40" width="240" height="140" rx="16" fill="#fff4d7" stroke="#d39a3f" stroke-width="4"/>
+            <text x="160" y="84" text-anchor="middle" font-size="24" fill="#8a4f00" font-weight="700">JOKE COUPON</text>
+            <text x="160" y="122" text-anchor="middle" font-size="20" fill="#8a4f00">One playful BBL injection</text>
+            <text x="160" y="152" text-anchor="middle" font-size="13" fill="#8a4f00">(redeem for laughs only)</text>
+          </svg></div>`,
+        5: () => `<h3>Door 5</h3><div class="svg-wrap"><svg width="320" height="220" viewBox="0 0 320 220" role="img" aria-label="Kernel coding icon">
+            <rect x="96" y="52" width="128" height="116" rx="14" fill="#2f2f49" stroke="#94f1ff" stroke-width="4"/>
+            <rect x="118" y="74" width="84" height="62" rx="8" fill="#111" stroke="#78ffb9"/>
+            <text x="160" y="112" text-anchor="middle" fill="#78ffb9" font-size="20">&lt;/&gt;</text>
+            <g stroke="#2f2f49" stroke-width="6">
+              <line x1="74" y1="70" x2="96" y2="70"/><line x1="74" y1="100" x2="96" y2="100"/><line x1="74" y1="130" x2="96" y2="130"/>
+              <line x1="224" y1="70" x2="246" y2="70"/><line x1="224" y1="100" x2="246" y2="100"/><line x1="224" y1="130" x2="246" y2="130"/>
+            </g>
+            <text x="160" y="188" text-anchor="middle" fill="#334" font-size="16" font-weight="700">kernel = coding</text>
+          </svg></div>`,
+        6: () => `<h3>Door 6</h3><div class="svg-wrap"><svg width="330" height="220" viewBox="0 0 330 220" role="img" aria-label="Mini park scene">
+            <rect width="330" height="220" rx="18" fill="#b9e8ff"/>
+            <circle cx="266" cy="52" r="24" fill="#ffe66c"/>
+            <path d="M0 150 Q130 110 330 158 L330 220 L0 220" fill="#89cf7b"/>
+            <path d="M130 220 Q140 170 180 136 Q220 170 230 220" fill="#f6e7c7"/>
+            <rect x="56" y="100" width="10" height="48" fill="#7b4f28"/><circle cx="61" cy="90" r="24" fill="#3fa85a"/>
+            <rect x="250" y="112" width="9" height="42" fill="#7b4f28"/><circle cx="255" cy="104" r="22" fill="#469e57"/>
+            <text x="165" y="208" text-anchor="middle" fill="#2f6a3a" font-weight="700">sparkly park day</text>
+          </svg></div>`,
+        7: () => `<h3>Door 7</h3><div class="svg-wrap"><svg width="320" height="220" viewBox="0 0 320 220" role="img" aria-label="House with YIMBY sign">
+            <rect x="96" y="102" width="130" height="86" rx="10" fill="#ffdcb3" stroke="#ba7c3f" stroke-width="4"/>
+            <polygon points="88,104 160,42 234,104" fill="#f37a8f" stroke="#a43c52" stroke-width="4"/>
+            <rect x="147" y="136" width="30" height="52" fill="#8a5a3f"/>
+            <rect x="228" y="132" width="68" height="40" rx="8" fill="#fff" stroke="#5b4a92" stroke-width="3"/>
+            <text x="262" y="157" text-anchor="middle" fill="#5b4a92" font-weight="800">YIMBY</text>
+          </svg></div>`,
+        8: () => `<h3>Door 8</h3><div class="svg-wrap"><svg width="320" height="220" viewBox="0 0 320 220" role="img" aria-label="Salt and vinegar chips bag">
+            <path d="M104 42 L216 42 L236 188 L84 188 Z" fill="#ffe78f" stroke="#cf9f37" stroke-width="4"/>
+            <rect x="114" y="74" width="92" height="74" rx="12" fill="#fff" stroke="#7aa0d9" stroke-width="3"/>
+            <text x="160" y="102" text-anchor="middle" fill="#2e5083" font-size="14" font-weight="700">Salt &amp;</text>
+            <text x="160" y="122" text-anchor="middle" fill="#2e5083" font-size="14" font-weight="700">Vinegar</text>
+            <ellipse cx="150" cy="158" rx="14" ry="8" fill="#f6d194"/>
+            <ellipse cx="172" cy="164" rx="14" ry="8" fill="#f2c77e"/>
+          </svg></div>`,
+        9: () => `<h3>Door 9</h3><div class="svg-wrap"><svg width="320" height="220" viewBox="0 0 320 220" role="img" aria-label="Brown carhartt jacket icon">
+            <path d="M98 66 L130 52 L190 52 L222 66 L236 176 L84 176 Z" fill="#8f5a2f" stroke="#5e361b" stroke-width="4"/>
+            <path d="M160 52 L160 176" stroke="#5e361b" stroke-width="4"/>
+            <rect x="124" y="108" width="30" height="22" fill="#7b4a25"/>
+            <rect x="166" y="108" width="30" height="22" fill="#7b4a25"/>
+            <text x="160" y="201" text-anchor="middle" fill="#5e361b" font-size="20" font-weight="700">carhartt</text>
+          </svg></div>`,
+        10: () => `<h3>Door 10</h3><div class="svg-wrap"><svg width="320" height="220" viewBox="0 0 320 220" role="img" aria-label="Red velvet cake with candle">
+            <rect x="92" y="150" width="136" height="22" rx="8" fill="#f1d8aa"/>
+            <path d="M102 146 L206 146 L184 92 L124 92 Z" fill="#9f1f3a" stroke="#711126" stroke-width="4"/>
+            <path d="M116 118 Q154 136 192 118" stroke="#fff1ef" stroke-width="6" fill="none"/>
+            <rect x="154" y="66" width="12" height="26" fill="#ffdca2"/>
+            <path d="M160 52 C152 60 154 70 160 73 C166 70 168 60 160 52" fill="#ff833e"/>
+          </svg></div>`,
+        11: () => `<h3>Door 11</h3><div class="svg-wrap"><svg width="320" height="220" viewBox="0 0 320 220" role="img" aria-label="Pumpkin that says i’m you">
+            <ellipse cx="160" cy="132" rx="76" ry="60" fill="#f68a2d" stroke="#b45d18" stroke-width="4"/>
+            <ellipse cx="132" cy="132" rx="24" ry="52" fill="none" stroke="#d37022" stroke-width="4"/>
+            <ellipse cx="188" cy="132" rx="24" ry="52" fill="none" stroke="#d37022" stroke-width="4"/>
+            <rect x="153" y="58" width="14" height="22" rx="6" fill="#5e7d2b"/>
+            <text x="160" y="137" text-anchor="middle" fill="#5f2e10" font-size="25" font-weight="700">i’m you</text>
+          </svg></div>`,
+        12: () => `<h3>Door 12</h3><div class="svg-wrap"><svg width="340" height="230" viewBox="0 0 340 230" role="img" aria-label="Texas shape with flag motif and cowboy boots">
+            <path d="M70 44 L150 44 L150 76 L196 76 L196 130 L164 130 L164 186 L102 186 L102 130 L70 130 Z" fill="#fff" stroke="#23366e" stroke-width="4"/>
+            <rect x="74" y="48" width="34" height="78" fill="#2e56c6"/>
+            <rect x="108" y="48" width="84" height="39" fill="#fff"/>
+            <rect x="108" y="87" width="84" height="39" fill="#d92d2d"/>
+            <path d="M89 62 l8 22 h-16 z" fill="#fff"/>
+            <path d="M228 140 h24 v34 h-24 z M252 140 h24 v34 h-24 z" fill="#7a4b2b"/>
+            <path d="M222 130 h36 v14 h-36 z M246 130 h36 v14 h-36 z" fill="#9c653f"/>
+            <text x="250" y="190" fill="#7a4b2b" font-weight="700">boots</text>
+          </svg></div>`,
+        13: () => `<h3>Door 13</h3><div class="svg-wrap"><svg width="320" height="230" viewBox="0 0 320 230" role="img" aria-label="Fantasy style poster for Lord of the Rings">
+            <rect x="58" y="20" width="204" height="188" rx="10" fill="#1e2f28" stroke="#8bcf8e" stroke-width="3"/>
+            <circle cx="160" cy="104" r="42" fill="none" stroke="#d9d58a" stroke-width="8"/>
+            <polygon points="160,62 171,98 209,98 178,120 190,156 160,133 130,156 142,120 111,98 149,98" fill="#778f61"/>
+            <text x="160" y="48" text-anchor="middle" fill="#e7efc3" font-size="22" font-weight="700">LORD OF THE RINGS</text>
+            <text x="160" y="192" text-anchor="middle" fill="#b6d29a" font-size="12">fantasy movie night poster</text>
+          </svg></div>`,
+        14: () => `
+          <h3>Door 14</h3>
+          <div class="final-message">forever hugs and kisses 💖✨</div>
+          <div class="svg-wrap">
+            <svg width="280" height="120" viewBox="0 0 280 120" aria-hidden="true">
+              <text x="22" y="70" font-size="40" fill="#ff4fad">❤</text>
+              <text x="102" y="90" font-size="34" fill="#77d4ff">❤</text>
+              <text x="172" y="66" font-size="38" fill="#ccff66">❤</text>
+              <text x="238" y="88" font-size="32" fill="#c8b8ff">✦</text>
+            </svg>
+          </div>`
+      };
+
+
+
+      const doorLayouts = {
+        1: { x: "26%", y: "6%", w: "15%", h: "16%", shape: "45% 45% 30% 30%", c1: "#ff54d4", c2: "#28c9ff" },
+        2: { x: "43%", y: "4%", w: "15%", h: "16%", shape: "45% 45% 30% 30%", c1: "#ff2da7", c2: "#8dff00" },
+        3: { x: "60%", y: "6%", w: "15%", h: "16%", shape: "45% 45% 30% 30%", c1: "#ff8a00", c2: "#ff2da7" },
+        4: { x: "14%", y: "19%", w: "16%", h: "15%", shape: "34% 46% 34% 48%", c1: "#00b9ff", c2: "#ff34b0" },
+        5: { x: "31%", y: "21%", w: "18%", h: "16%", shape: "40% 28% 40% 30%", c1: "#ff58c9", c2: "#ffcf00" },
+        6: { x: "51%", y: "21%", w: "18%", h: "16%", shape: "28% 40% 30% 40%", c1: "#00cfff", c2: "#ff2fb0" },
+        7: { x: "70%", y: "19%", w: "16%", h: "15%", shape: "46% 34% 48% 34%", c1: "#ff8f00", c2: "#65ff00" },
+        8: { x: "19%", y: "38%", w: "17%", h: "17%", shape: "36% 36% 48% 48%", c1: "#ff3bb8", c2: "#2fdaff" },
+        9: { x: "39%", y: "39%", w: "22%", h: "19%", shape: "28% 28% 48% 48%", c1: "#fd0", c2: "#ff2da7" },
+        10: { x: "63%", y: "38%", w: "17%", h: "17%", shape: "36% 36% 48% 48%", c1: "#7bff00", c2: "#00b8ff" },
+        11: { x: "25%", y: "60%", w: "16%", h: "16%", shape: "36% 36% 42% 42%", c1: "#ff49c2", c2: "#00cbff" },
+        12: { x: "43%", y: "62%", w: "15%", h: "15%", shape: "36%", c1: "#ff7a00", c2: "#ff35ba" },
+        13: { x: "60%", y: "60%", w: "16%", h: "16%", shape: "36% 36% 42% 42%", c1: "#00bcff", c2: "#8eff00" },
+        14: { x: "43%", y: "79%", w: "16%", h: "15%", shape: "34% 34% 46% 46%", c1: "#ff2da7", c2: "#ffd600" }
+      };
+
+      function getOpened() {
+        try {
+          return JSON.parse(localStorage.getItem(OPENED_KEY)) || [];
+        } catch {
+          return [];
+        }
+      }
+
+      function setOpened(arr) {
+        localStorage.setItem(OPENED_KEY, JSON.stringify(arr));
+      }
+
+      function setLoggedIn(isLoggedIn) {
+        localStorage.setItem(LOGIN_KEY, isLoggedIn ? "true" : "false");
+      }
+
+      function showScreen(isLoggedIn) {
+        loginScreen.classList.toggle("active", !isLoggedIn);
+        calendarScreen.classList.toggle("active", isLoggedIn);
+        if (isLoggedIn) {
+          buildDoors();
+        }
+      }
+
+      function buildDoors() {
+        const opened = new Set(getOpened());
+        calendarGrid.innerHTML = "";
+
+        for (let n = 1; n <= 14; n += 1) {
+          const btn = document.createElement("button");
+          btn.className = `door${opened.has(n) ? " opened" : ""}`;
+          btn.type = "button";
+          btn.setAttribute("aria-label", `Open door ${n}`);
+          btn.dataset.door = String(n);
+          const layout = doorLayouts[n];
+          if (layout) {
+            btn.style.setProperty("--x", layout.x);
+            btn.style.setProperty("--y", layout.y);
+            btn.style.setProperty("--w", layout.w);
+            btn.style.setProperty("--h", layout.h);
+            btn.style.setProperty("--shape", layout.shape);
+            btn.style.setProperty("--door1", layout.c1);
+            btn.style.setProperty("--door2", layout.c2);
+          }
+          btn.innerHTML = `<span class="num">${n}</span><span class="sticker" aria-hidden="true">✓</span>`;
+          btn.addEventListener("click", () => openDoor(n, btn));
+          calendarGrid.appendChild(btn);
+        }
+      }
+
+      function openDoor(num, sourceButton) {
+        const opened = getOpened();
+        if (!opened.includes(num)) {
+          opened.push(num);
+          setOpened(opened);
+          sourceButton?.classList.add("opened");
+        }
+
+        currentDoor = num;
+        lastFocused = document.activeElement;
+        modalTitle.textContent = `Door ${num} Surprise`;
+        surpriseContent.innerHTML = surprises[num]();
+        modal.classList.add("open");
+        modalClose.focus();
+      }
+
+      function closeModal() {
+        modal.classList.remove("open");
+        surpriseContent.innerHTML = "";
+        currentDoor = null;
+        if (lastFocused && typeof lastFocused.focus === "function") {
+          lastFocused.focus();
+        }
+      }
+
+      function trapFocus(event) {
+        if (!modal.classList.contains("open") || event.key !== "Tab") {
+          return;
+        }
+
+        const focusables = modal.querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+        const list = [...focusables].filter((el) => !el.hasAttribute("disabled"));
+        if (!list.length) return;
+
+        const first = list[0];
+        const last = list[list.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+
+      loginForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const formData = new FormData(loginForm);
+        const username = String(formData.get("username") || "").trim();
+        const password = String(formData.get("password") || "").trim();
+
+        if (username === DEMO_USERNAME && password === DEMO_PASSWORD) {
+          setLoggedIn(true);
+          feedback.textContent = "Logged in! Opening calendar...";
+          showScreen(true);
+        } else {
+          feedback.textContent = "Demo credentials don't match. Try again.";
+        }
+      });
+
+      resetBtn.addEventListener("click", () => {
+        localStorage.removeItem(LOGIN_KEY);
+        localStorage.removeItem(OPENED_KEY);
+        loginForm.reset();
+        feedback.textContent = "Reset done. You have been logged out.";
+        showScreen(false);
+      });
+
+      modalClose.addEventListener("click", closeModal);
+      modalBackdrop.addEventListener("click", closeModal);
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && modal.classList.contains("open")) {
+          closeModal();
+        }
+        trapFocus(event);
+      });
+
+      const isLoggedIn = localStorage.getItem(LOGIN_KEY) === "true";
+      showScreen(isLoggedIn);
+    </script>
   </body>
 </html>
